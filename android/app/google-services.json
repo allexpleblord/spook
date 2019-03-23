@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "528352738797",
+    "firebase_url": "https://spook-stories.firebaseio.com",
+    "project_id": "spook-stories",
+    "storage_bucket": "spook-stories.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:528352738797:android:0bfe2b3d44781299",
+        "android_client_info": {
+          "package_name": "com.allexpleblord.spook"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "528352738797-domru5v02s8e4jpb8lbqlfcqq4jv29vt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzQm9vl2TxUr8FIUNS39nuPLszx-zU58I"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
