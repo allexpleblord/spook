@@ -16,33 +16,6 @@ class _StoryState extends State<Story> {
   bool saved;
   _StoryState(this.id, this.saved);
 
-  // Used to build the story layout
-  Widget _buildStory(String title, String body) {
-    return ListView(
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.all(35.0),
-          child: Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 25.0),
-          ),
-        ),
-        Container(
-          padding: EdgeInsets.only(left: 10.0, right: 10.0, bottom: 35.0),
-          child: Text(
-            body,
-            style: TextStyle(
-              fontSize: 18.0,
-              fontWeight: FontWeight.w300,
-              color: Color(0xAAFFFFFF),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,8 +55,36 @@ class _StoryState extends State<Story> {
       ),
     );
   }
+
+  // Used to build the story layout
+  Widget _buildStory(String title, String body) {
+    return ListView(
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.all(35.0),
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 25.0),
+          ),
+        ),
+        Container(
+          padding: EdgeInsets.only(left: 12.0, right: 12.0, bottom: 35.0),
+          child: Text(
+            body,
+            style: TextStyle(
+              fontSize: 15.0,
+              fontWeight: FontWeight.w400,
+              color: Color(0xAAFFFFFF),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
+// Functions for Shared Preferences
 Future addBookmark(String id) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setBool(id, true);
