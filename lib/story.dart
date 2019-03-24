@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class Story extends StatelessWidget {
+class Story extends StatefulWidget {
   final id;
-  Story(this.id);
+  final saved;
+  Story(this.id, this.saved);
+
+  @override
+  _StoryState createState() => _StoryState(id, saved);
+}
+
+class _StoryState extends State<Story> {
+  String id;
+  bool saved;
+  _StoryState(this.id, this.saved);
 
   // Used to build the story layout
   Widget _buildStory(String title, String body) {
@@ -38,6 +49,23 @@ class Story extends StatelessWidget {
       appBar: AppBar(
         centerTitle: true,
         elevation: 0.0,
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(saved ? Icons.bookmark : Icons.bookmark_border),
+            onPressed: () {
+              // Change the icon appearance and remove/add bookmark
+              setState(() {
+                if (saved) {
+                  saved = false;
+                  removeBookmark(id);
+                } else {
+                  saved = true;
+                  addBookmark(id);
+                }
+              });
+            },
+          ),
+        ],
       ),
       body: StreamBuilder(
         stream: Firestore.instance.collection('story').document(id).snapshots(),
@@ -54,4 +82,14 @@ class Story extends StatelessWidget {
       ),
     );
   }
+}
+
+Future addBookmark(String id) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setBool(id, true);
+}
+
+Future removeBookmark(String id) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.remove(id);
 }

@@ -10,8 +10,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  Set<String> bookmarked = {};
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,8 +43,8 @@ class _HomeState extends State<Home> {
       separatorBuilder: (BuildContext ctx, int i) => Divider(),
       itemCount: stories.length,
       itemBuilder: (BuildContext ctx, int i) {
-        return FutureBuilder(
-          future: SharedPreferences.getInstance(),
+        return StreamBuilder(
+          stream: SharedPreferences.getInstance().asStream(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               bool saved = snapshot.data.getKeys().contains(stories[i]['id']);
@@ -63,27 +61,20 @@ class _HomeState extends State<Home> {
     return ListTile(
       title: Text(story['title']),
       subtitle: Text(story['date']),
-      trailing: IconButton(
-        icon: Icon(saved ? Icons.bookmark : Icons.bookmark_border),
-        onPressed: () {
-          setState(() {
-            if (saved)
-              removeBookmark(story['id']);
-            else
-              addBookmark(story['id']);
-          });
-        },
+      trailing: Icon(
+        saved ? Icons.bookmark : Icons.bookmark_border,
+        color: Colors.grey[600],
       ),
-      onTap: () { _getStory(story['id']); },
+      onTap: () { _getStory(story['id'], saved); },
     );
   }
 
   // Other routes
-  void _getStory(id) {
+  void _getStory(id, saved) {
     Navigator.push( 
       context,
       MaterialPageRoute(
-        builder: (BuildContext context) => Story(id),
+        builder: (BuildContext context) => Story(id, saved),
       ),
     );
   }
@@ -95,14 +86,4 @@ class _HomeState extends State<Home> {
       ),
     );
   }
-}
-
-Future addBookmark(String id) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setBool(id, true);
-}
-
-Future removeBookmark(String id) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.remove(id);
 }

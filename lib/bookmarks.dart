@@ -21,7 +21,7 @@ class Bookmarks extends StatelessWidget {
         return StreamBuilder(
           stream: Firestore.instance.collection('storyList').document(bookmarks[i]).snapshots(),
           builder: (context, snapshot) {
-            if (!snapshot.hasData) return CircularProgressIndicator();
+            if (!snapshot.hasData) return Text('');
 
             var story = snapshot.data;
             return _buildTile(story);
@@ -45,7 +45,7 @@ class Bookmarks extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.done) {
             return _buildBookmarked(snapshot.data.getKeys().toList());
           } else {
-            return CircularProgressIndicator();
+            return Text('');
           }
         },
       ),
