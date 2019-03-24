@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './story.dart';
+import './bookmarks.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -9,8 +10,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  Set<String> bookmarked = {};
-
   // For the home title
   Widget _homeTitle() {
     return Padding(
@@ -25,49 +24,38 @@ class _HomeState extends State<Home> {
     );
   }
 
-  // Will fill the bookmarked set
-  void _fillBookmarks(posts) {
-    for (var i = 0; i < posts.length; i++) {
-      checkBookmark(posts[i]['id']).then((value) {
-        if (value) setState(() {
-          bookmarked.add(posts[i]['id']);
-        });
-      });
-    }
-  }
-
   // Change route
   void _getStory(id) {
     Navigator.push( 
       context,
       MaterialPageRoute(
-        builder: (BuildContext context) => Story(id)
+        builder: (BuildContext context) => Story(id),
+      ),
+    );
+  }
+
+  void _getBookmarked() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => Bookmarks(),
       ),
     );
   }
 
   // List tile
-  Widget _buildTile(post) {
+  Widget _buildTile(post, saved) {
     return ListTile(
       title: Text(post['title']),
       subtitle: Text(post['date']),
       trailing: IconButton(
-        icon: Icon(
-          bookmarked.contains(post['id']) ? Icons.bookmark : Icons.bookmark_border,
-        ),
+        icon: Icon(saved ? Icons.bookmark : Icons.bookmark_border),
         onPressed: () {
-          // Set state and update preferences
-          setState(() {
-            if (bookmarked.contains(post['id'])) {
-              removeBookmark(post['id']);
-              bookmarked.remove(post['id']);
-              print(bookmarked);
-            } else {
-              addBookmark(post['id']);
-              bookmarked.add(post['id']);
-              print(bookmarked);
-            }
-          });
+          if (saved) {
+            removeBookmark(post['id']);
+          } else {
+            addBookmark(post['id']);
+          }
         },
       ),
       onTap: () {
@@ -86,7 +74,17 @@ class _HomeState extends State<Home> {
       itemCount: posts.length + 1,
       itemBuilder: (BuildContext ctx, int i) {
         if (i == 0) return _homeTitle();
-        return _buildTile(posts[i - 1]);
+        return FutureBuilder(
+          future: SharedPreferences.getInstance(),
+          builder: (context, snapshot) {
+            var keys = snapshot.data.getKeys();
+            if (keys.contains(posts[i - 1]['id'])) {
+              return _buildTile(posts[i - 1], true);
+            } else {
+              return _buildTile(posts[i - 1], false);
+            }
+          },
+        );
       },
     );
   }
@@ -100,18 +98,20 @@ class _HomeState extends State<Home> {
         title: Text('SPOOK'),
         centerTitle: true,
         elevation: 0.0,
+        leading: IconButton(
+          icon: Icon(Icons.collections_bookmark),
+          onPressed: () {
+            _getBookmarked();
+          },
+        ),
       ),
       body: StreamBuilder(
         stream: Firestore.instance.collection('storyList').snapshots(),
         builder: (context, snapshot) {
           // If no data yet
-          if (!snapshot.hasData) return const Center(
-            child: Text('Loading posts...'),
-          );
+          if (!snapshot.hasData) return CircularProgressIndicator();
 
           var stories = snapshot.data.documents;
-          _fillBookmarks(stories);
-          // Else get the data and build the list
           return _buildList(stories);
         },
       ),
@@ -126,7 +126,7 @@ Future addBookmark(String id) async {
 
 Future removeBookmark(String id) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setBool(id, false);
+  prefs.remove(id);
 }
 
 Future<bool> checkBookmark(String id) async {
