@@ -10,87 +10,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  // For the home title
-  Widget _homeTitle() {
-    return Padding(
-      padding: EdgeInsets.all(35.0),
-      child: Text(
-        'A collection of hand picked spooky stories.',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 20.0,
-        ),
-      ),
-    );
-  }
+  Set<String> bookmarked = {};
 
-  // Change route
-  void _getStory(id) {
-    Navigator.push( 
-      context,
-      MaterialPageRoute(
-        builder: (BuildContext context) => Story(id),
-      ),
-    );
-  }
-
-  void _getBookmarked() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (BuildContext context) => Bookmarks(),
-      ),
-    );
-  }
-
-  // List tile
-  Widget _buildTile(post, saved) {
-    return ListTile(
-      title: Text(post['title']),
-      subtitle: Text(post['date']),
-      trailing: IconButton(
-        icon: Icon(saved ? Icons.bookmark : Icons.bookmark_border),
-        onPressed: () {
-          if (saved) {
-            removeBookmark(post['id']);
-          } else {
-            addBookmark(post['id']);
-          }
-        },
-      ),
-      onTap: () {
-        _getStory(post['id']);
-      },
-    );
-  }
-
-  // List builder
-  // Length is `i + 1` and selector is `i - 1` so that the title can be
-  // output first when i is 0
-  Widget _buildList(posts) {
-    return ListView.separated(
-      padding: EdgeInsets.all(16.0),
-      separatorBuilder: (BuildContext ctx, int i) => Divider(),
-      itemCount: posts.length + 1,
-      itemBuilder: (BuildContext ctx, int i) {
-        if (i == 0) return _homeTitle();
-        return FutureBuilder(
-          future: SharedPreferences.getInstance(),
-          builder: (context, snapshot) {
-            var keys = snapshot.data.getKeys();
-            if (keys.contains(posts[i - 1]['id'])) {
-              return _buildTile(posts[i - 1], true);
-            } else {
-              return _buildTile(posts[i - 1], false);
-            }
-          },
-        );
-      },
-    );
-  }
-
-
-  // Main build method
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,20 +21,77 @@ class _HomeState extends State<Home> {
         elevation: 0.0,
         leading: IconButton(
           icon: Icon(Icons.collections_bookmark),
-          onPressed: () {
-            _getBookmarked();
-          },
+          onPressed: () { _getBookmarked(); },
         ),
       ),
-      body: StreamBuilder(
-        stream: Firestore.instance.collection('storyList').snapshots(),
+      body: FutureBuilder(
+        future: Firestore.instance.collection('storyList').getDocuments(),
         builder: (context, snapshot) {
-          // If no data yet
-          if (!snapshot.hasData) return CircularProgressIndicator();
-
-          var stories = snapshot.data.documents;
-          return _buildList(stories);
+          if (snapshot.connectionState == ConnectionState.done) {
+            var stories = snapshot.data.documents;
+            return _buildList(stories);
+          } else {
+            return Text('');
+          }
         },
+      ),
+    );
+  }
+
+  // Make a list
+  Widget _buildList(stories) {
+    return ListView.separated(
+      padding: EdgeInsets.all(16.0),
+      separatorBuilder: (BuildContext ctx, int i) => Divider(),
+      itemCount: stories.length,
+      itemBuilder: (BuildContext ctx, int i) {
+        return FutureBuilder(
+          future: SharedPreferences.getInstance(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              bool saved = snapshot.data.getKeys().contains(stories[i]['id']);
+              return _buildListTile(stories[i], saved);
+            } else {
+              return Text('');
+            }
+          },
+        );
+      },
+    );
+  }
+  Widget _buildListTile(story, saved) {
+    return ListTile(
+      title: Text(story['title']),
+      subtitle: Text(story['date']),
+      trailing: IconButton(
+        icon: Icon(saved ? Icons.bookmark : Icons.bookmark_border),
+        onPressed: () {
+          setState(() {
+            if (saved)
+              removeBookmark(story['id']);
+            else
+              addBookmark(story['id']);
+          });
+        },
+      ),
+      onTap: () { _getStory(story['id']); },
+    );
+  }
+
+  // Other routes
+  void _getStory(id) {
+    Navigator.push( 
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => Story(id),
+      ),
+    );
+  }
+  void _getBookmarked() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => Bookmarks(),
       ),
     );
   }
@@ -127,10 +105,4 @@ Future addBookmark(String id) async {
 Future removeBookmark(String id) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.remove(id);
-}
-
-Future<bool> checkBookmark(String id) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  bool bookmarked = prefs.getBool(id);
-  return bookmarked ?? false;
 }
