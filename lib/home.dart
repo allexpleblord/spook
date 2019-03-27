@@ -36,19 +36,38 @@ class _HomeState extends State<Home> {
     );
   }
 
+  // Home page title
+  Widget _homeTitle() {
+    return Padding(
+      padding: EdgeInsets.all(35.0),
+      child: Text(
+        'A collection of hand picked spooky stories.',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 20.0,
+        ),
+      ),
+    );
+  }
+
   // Make a list
   Widget _buildList(stories) {
     return ListView.separated(
       padding: EdgeInsets.all(16.0),
       separatorBuilder: (BuildContext ctx, int i) => Divider(),
-      itemCount: stories.length,
+      itemCount: stories.length + 1, // Increase by one so that title can go in when i == 0
       itemBuilder: (BuildContext ctx, int i) {
+        // Return title first
+        if (i == 0) return _homeTitle();
+
+        // Then return streambuilder to get the bookmarks
+        // Selector is i - 1 since I increased the itemCount by 1
         return StreamBuilder(
           stream: SharedPreferences.getInstance().asStream(),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              bool saved = snapshot.data.getKeys().contains(stories[i]['id']);
-              return _buildListTile(stories[i], saved);
+            if (snapshot.hasData) {
+              bool saved = snapshot.data.getKeys().contains(stories[i - 1]['id']);
+              return _buildListTile(stories[i - 1], saved);
             } else {
               return Text('');
             }
