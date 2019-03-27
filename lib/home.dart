@@ -22,10 +22,10 @@ class _HomeState extends State<Home> {
           onPressed: () { _getBookmarked(); },
         ),
       ),
-      body: FutureBuilder(
-        future: Firestore.instance.collection('storyList').getDocuments(),
+      body: StreamBuilder(
+        stream: Firestore.instance.collection('storyList').snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasData) {
             var stories = snapshot.data.documents;
             return _buildList(stories);
           } else {
