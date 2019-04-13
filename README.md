@@ -1,16 +1,6 @@
 # spook
 
-A new Flutter project.
+Spook is a mobile application for hand picked spooky stories. You can bookmark your favourite stories or stories that you want to come back to later.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.io/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.io/docs/cookbook)
-
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.io/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
+## Technologies Used
+This mobile app was made with Flutter. It fetches the stories from Firestore and saves bookmarked ones in the shared preferences ( local storage ). I have also made a website for submitting the stories to firestore but it is not public. The app can be exported to both Android and IOS. The UI was designed by me.
